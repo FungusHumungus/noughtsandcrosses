@@ -1,0 +1,43 @@
+* {
+    box-sizing: border-box;
+}
+
+html {
+    font-family: sans-serif;
+}
+
+.extreme {
+    background: red;
+    transform: translate(-37px, 8px) rotate(-20deg);
+    transform-origin: center;
+    display: inline-block;
+    font-size: small;
+    padding: 2px 8px;
+}
+
+.game {
+    width: 500px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.board {
+    border-radius: 10%;
+    width: 29%;
+    flex-wrap: wrap;
+    flex-direction: row;
+    display: flex;
+    margin-top: 30px;
+    margin-left: 2%;
+    margin-right: 2%;
+}
+
+.point {
+    width: 33.33%;
+    border: solid black;
+    height: 40px;
+    text-align: center;
+    font-size: 24px;
+    line-height: 1.7;
+}

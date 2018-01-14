@@ -1,0 +1,15 @@
+{
+  "name": "noughtsncrosses",
+  "version": "0.1.0",
+  "sources": [
+    "src"
+  ],
+  "package-specs" : {
+    "module": "commonjs"
+  },
+  "suffix": ".bs.js",
+  "bs-dependencies" : [
+      "bucklescript-tea",
+      // add your bs-dependencies here 
+  ]
+}
