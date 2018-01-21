@@ -1,4 +1,6 @@
 open Morelist
+open Winner
+open! Types
 
 module Array = struct
   include Array
@@ -9,68 +11,66 @@ module Array = struct
         
 end
              
-type mutable_board = { mboard : Board.point array
-                     ; mwinner : Board.point }
+type mutable_board = { mboard : point array
+                     ; mwinner : point }
                    
 type mutable_game = mutable_board array
 
-module MutableBoard : Board.AtPoint 
-     with type t = Board.point array = struct
-                 type t = Board.point array
+module MutableBoardPoint : AtPoint 
+     with type t = point array = struct
+                 type t = point array
                  let value_at_point board pos = 
                    Array.get board pos
                end
                    
-module MutableGame : Board.AtPoint 
+module MutableGamePoint : AtPoint 
        with type t = mutable_game = struct
                    type t = mutable_game
                    let value_at_point board pos = 
                      let b = Array.get board pos in
                      b.mwinner
                  end
+                           
+module MutableGame : Board.Game
+     with type t = mutable_game = struct
+                 type t = mutable_game
+                 let value_at_point game board pos = 
+                   let board' = (Array.get game board).mboard in
+                   Array.get board' pos
+               end
      
-let game_to_mutable_game (game: Board.board list) = 
-  let board_to_mutable_board board = Board.{ mwinner = board.winner
-                                           ; mboard = Array.of_list board.board } in 
+let game_to_mutable_game (game: board list) = 
+  let board_to_mutable_board board = { mwinner = board.winner
+                                     ; mboard = Array.of_list board.board } in 
   Array.of_list @@ List.map board_to_mutable_board game
   
 let rec random_move ~game ~board =
   let point = (Random.int 9) in
-  let board' = (Array.get game board).mboard in
-  let module Rules = Board.Rules(MutableBoard) in
-  if Rules.is_valid_move board' point
+  let module Rules = Board.Rules(MutableGame)(MutableGamePoint) in
+  if Rules.is_valid_move game board point
   then point
   else random_move ~game ~board
 
-let full_board board = 
-  Array.for_all (fun item -> item != Board.Empty) board
- 
+(** Play a random game from the given position *)
 let rec play_game (game: mutable_game) (current_board: int) move turn = 
-
   let board = Array.get game current_board in
   let board' = board.mboard in
   board'.(move) <- turn;
-  if board.mwinner == Board.Empty
+  if board.mwinner == Empty
   then 
-    let module Check = Board.CheckWinner(MutableBoard) in
+    let module Check = CheckWinner(MutableBoardPoint) in
     let winner = Check.winner board' in
     game.(current_board) <- { mboard = board'
                            ; mwinner = winner };
   else
     ();
-  let module Check = Board.CheckWinner(MutableGame) in
-  let winner = Check.winner game in
-  match winner with
-  | Empty -> 
-     let module Rules = Board.Rules(MutableBoard) in
-     if Rules.valid_moves (game.(move).mboard) |> List.empty
-     then Board.Draw
-     else play_game game move (random_move ~game ~board:move) (Board.change_turn turn)
-  | Nought -> Board.Noughts
-  | Cross -> Board.Crosses
+  let module Rules = Board.Rules(MutableGame)(MutableGamePoint) in
+  match Rules.result game move with
+  | None -> 
+     play_game game move (random_move ~game ~board:move) (Board.change_turn turn)
+  | _ as winner -> winner
            
 let did_i_win turn winner = 
-  let open Board in
   match turn, winner with
   | Nought, Noughts -> true
   | Cross, Crosses -> true
@@ -84,8 +84,10 @@ let string_of_wins wins =
   
   
 (** The number of random games to play per move. *)
-let rollouts = 1000
+let rollouts = 400
   
+(** Make our move by playing a load of random games from each possible 
+ move. See which possible move gives us the most wins. *)
 let move game current_board whos_turn = 
   let rec get_wins count wins move = 
     if count = rollouts
@@ -95,11 +97,10 @@ let move game current_board whos_turn =
          get_wins (count + 1) (if did_i_win whos_turn win then wins + 1 else wins) move
     
   in
-  let module Rules = Board.Rules(Board.Board) in 
-  let wins = Rules.valid_moves (List.nth game current_board).board
+  let module Rules = Board.Rules(Board.PersistentGame)(Winner.GamePoint) in 
+  let wins = Rules.valid_moves game current_board
              |> List.map (get_wins 0 0) in
   let compare_moves (_, wins) (_, wins') = compare wins' wins in
-  Js.log @@ string_of_wins wins;
   List.sort compare_moves wins
   |> List.hd
   |> fst

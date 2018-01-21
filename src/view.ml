@@ -1,5 +1,6 @@
 open Tea.Html
-open Types
+open Model
+open! Types
 open! Board
        
 let border_style top right bottom left =

@@ -1,7 +1,8 @@
 open Tea
 open Tea.App
    
-open Types
+open Model
+open! Types
 open! Board
 
 open Morelist
@@ -27,31 +28,23 @@ let update model = function
        let (valid, game) = make_move model.game model.current_board model.turn board point in
        if valid
        then 
-         let module Check = CheckWinner(Game) in
-         let module Rules = Rules(Board) in
-         match Check.winner game with
-         | Empty ->
-            if Rules.valid_moves (List.nth model.game point).board 
-               |> List.empty
-            then ({ model with game_winner = Draw}, Cmd.none)
-            else let turn = change_turn model.turn in
-                 let pooters_turn = turn == Cross in
-                 ({ model with pooter_thinking = pooters_turn
-                             ; game = game
-                             ; current_board = point
-                             ; turn = turn
-                  }, if pooters_turn
-                     then Agent.move game point turn
-                     else Cmd.none)
-         | Nought -> ({ model with game = game
-                                ; pooter_thinking = false
-                                ; game_winner = Noughts },
+         let module Rules = Board.Rules(Board.PersistentGame)(Winner.GamePoint) in
+         match Rules.result game point with
+         | None ->
+            let turn = change_turn model.turn in
+            let pooters_turn = turn == Cross in
+            ({ model with pooter_thinking = pooters_turn
+                        ; game = game
+                        ; current_board = point
+                        ; turn = turn
+             }, if pooters_turn
+                then Agent.move game point turn
+                else Cmd.none)
+         | _ as winner -> ({ model with game = game
+                                     ; pooter_thinking = false
+                                     ; game_winner = winner },
                      Cmd.none)
-         | Cross -> ({ model with game = game
-                               ; pooter_thinking = false
-                               ; game_winner = Crosses },
-                    Cmd.none)
-                       
+                                
        else (model, Cmd.none)
      else (model, Cmd.none)
    

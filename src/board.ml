@@ -1,76 +1,43 @@
 open Morelist
+open! Types
+open Winner
    
-type winner = 
-  | None
-  | Noughts
-  | Crosses
-  | Draw
-  
-type point = 
-  | Empty
-  | Nought
-  | Cross
-  
-type board = { board : point list  
-             ; winner : point }
-           
-           
-module type AtPoint = sig
+module type Game = sig
   type t
-  val value_at_point : t -> int -> point
-
-end
-                    
-module Board : AtPoint 
-       with type t = point list = struct
-                   type t = point list
-                   let value_at_point board pos = 
-                     List.nth board pos
-                 end
-     
-module Game : AtPoint 
-       with type t = board list = struct
-                   type t = board list
-                   let value_at_point board pos = 
-                     let b = List.nth board pos in
-                     b.winner
-                 end
-
-module CheckWinner (Point: AtPoint) = struct
-  type t = Point.t
-  let turn_at_points board points = 
-    let turn_at_point point = Point.value_at_point board point in
-    let turns = List.map turn_at_point points in
-    let head = List.hd turns in
-    if head == Empty 
-    then Empty
-    else begin if List.for_all (fun item -> item = head) turns
-               then head
-               else Empty
-         end
-    
-  let winning_combinations = 
-    [ [0;1;2]; [3;4;5]; [6;7;8]
-      ; [0;3;6]; [1;4;7]; [2;5;8]
-      ; [0;4;8]; [2;4;6] ] 
-
-  let winner board = 
-    let lines = List.map (turn_at_points board) winning_combinations in
-    let winning_lines = List.filter (fun line -> line != Empty) lines in
-    if List.length winning_lines > 0 
-    then List.hd winning_lines
-    else Empty
+  val value_at_point : t -> int -> int -> point
 end
   
-module Rules (Point: AtPoint) = struct
+module Rules (Game: Game)
+             (Point: AtPoint with type t = Game.t) = struct
  
-  let is_valid_move board point = Point.value_at_point board point == Empty
+  module Winner = CheckWinner(Point)
+                
+  let is_valid_move game board point = Game.value_at_point game board point == Empty
 
-  let valid_moves board = 
+  let valid_moves game board = 
     List.range 0 8 |>
-      List.filter (is_valid_move board)
+      List.filter (is_valid_move game board)
   
+  let result game current_board =
+    match Winner.winner game with
+    | Empty ->
+       if valid_moves game current_board |> List.empty
+        then Draw
+       else None
+    | Nought -> Noughts
+    | Cross -> Crosses
+   
 end
+                          
+                          
+module PersistentGame : Game
+     with type t = board list = struct
+                 type t = board list
+                 let value_at_point game board pos = 
+                   let board' = (List.nth game board).board in
+                   List.nth board' pos
+               end
+     
  
 let turn_at_board_point game board point = 
   let board' = List.nth game board in
@@ -85,26 +52,25 @@ let change_turn = function
   | Cross -> Nought
   | _ -> failwith "Dont be silly"
       
- 
-let make_move game current_board turn board point = 
+(** Make a move on our immutable board. *)
+let make_move (game: board list) current_board turn board point = 
   let update_point idx point' = if idx == point 
-                                then if point' == Empty 
-                                     then turn
-                                     else point'
+                                then turn
                                 else point'
   in
   let 
     update_board idx board' = if idx == board
                               then let new_board = List.mapi update_point board'.board in
                                    { board = new_board
-                                   ; winner = let module Check = CheckWinner(Board) in
+                                   ; winner = let module Check = CheckWinner(BoardPoint) in
                                               if board'.winner == Empty
                                               then Check.winner new_board
                                               else board'.winner
                                    }
                               else board'
   in
-  let valid_move = (turn_at_board_point game board point) == Empty in
+  let module Rules = Rules(PersistentGame)(Winner.GamePoint) in
+  let valid_move = Rules.is_valid_move game board point in
   if (current_board == board) && valid_move
   then let game' = List.mapi update_board game in
        (true, game') 

@@ -7286,167 +7286,52 @@ exports.compare   = compare;
 
 
 var Curry      = __webpack_require__(1);
+var Winner     = __webpack_require__(45);
 var Morelist   = __webpack_require__(44);
 var Pervasives = __webpack_require__(5);
 
-function value_at_point(board, pos) {
-  return Curry._2(Morelist.List[/* nth */3], board, pos);
+function Rules(Game) {
+  return (function (Point) {
+      var Winner$1 = Winner.CheckWinner(Point);
+      var is_valid_move = function (game, board, point) {
+        return +(Curry._3(Game[/* value_at_point */0], game, board, point) === /* Empty */0);
+      };
+      var valid_moves = function (game, board) {
+        return Curry._2(Morelist.List[/* filter */28], (function (param) {
+                      return is_valid_move(game, board, param);
+                    }), Morelist.List[/* range */46](0, 8));
+      };
+      var result = function (game, current_board) {
+        var match = Curry._1(Winner$1[/* winner */2], game);
+        switch (match) {
+          case 0 : 
+              if (Morelist.List[/* empty */45](valid_moves(game, current_board))) {
+                return /* Draw */3;
+              } else {
+                return /* None */0;
+              }
+          case 1 : 
+              return /* Noughts */1;
+          case 2 : 
+              return /* Crosses */2;
+          
+        }
+      };
+      return /* module */[
+              /* Winner */Winner$1,
+              /* is_valid_move */is_valid_move,
+              /* valid_moves */valid_moves,
+              /* result */result
+            ];
+    });
 }
 
-var Board = /* module */[/* value_at_point */value_at_point];
-
-function value_at_point$1(board, pos) {
-  return Curry._2(Morelist.List[/* nth */3], board, pos)[/* winner */1];
+function value_at_point(game, board, pos) {
+  var board$prime = Curry._2(Morelist.List[/* nth */3], game, board)[/* board */0];
+  return Curry._2(Morelist.List[/* nth */3], board$prime, pos);
 }
 
-var Game = /* module */[/* value_at_point */value_at_point$1];
-
-function CheckWinner(Point) {
-  var turn_at_points = function (board, points) {
-    var turn_at_point = function (point) {
-      return Curry._2(Point[/* value_at_point */0], board, point);
-    };
-    var turns = Curry._2(Morelist.List[/* map */11], turn_at_point, points);
-    var head = Curry._1(Morelist.List[/* hd */1], turns);
-    if (head === /* Empty */0 || !Curry._2(Morelist.List[/* for_all */21], (function (item) {
-              return +(item === head);
-            }), turns)) {
-      return /* Empty */0;
-    } else {
-      return head;
-    }
-  };
-  var winning_combinations = /* :: */[
-    /* :: */[
-      0,
-      /* :: */[
-        1,
-        /* :: */[
-          2,
-          /* [] */0
-        ]
-      ]
-    ],
-    /* :: */[
-      /* :: */[
-        3,
-        /* :: */[
-          4,
-          /* :: */[
-            5,
-            /* [] */0
-          ]
-        ]
-      ],
-      /* :: */[
-        /* :: */[
-          6,
-          /* :: */[
-            7,
-            /* :: */[
-              8,
-              /* [] */0
-            ]
-          ]
-        ],
-        /* :: */[
-          /* :: */[
-            0,
-            /* :: */[
-              3,
-              /* :: */[
-                6,
-                /* [] */0
-              ]
-            ]
-          ],
-          /* :: */[
-            /* :: */[
-              1,
-              /* :: */[
-                4,
-                /* :: */[
-                  7,
-                  /* [] */0
-                ]
-              ]
-            ],
-            /* :: */[
-              /* :: */[
-                2,
-                /* :: */[
-                  5,
-                  /* :: */[
-                    8,
-                    /* [] */0
-                  ]
-                ]
-              ],
-              /* :: */[
-                /* :: */[
-                  0,
-                  /* :: */[
-                    4,
-                    /* :: */[
-                      8,
-                      /* [] */0
-                    ]
-                  ]
-                ],
-                /* :: */[
-                  /* :: */[
-                    2,
-                    /* :: */[
-                      4,
-                      /* :: */[
-                        6,
-                        /* [] */0
-                      ]
-                    ]
-                  ],
-                  /* [] */0
-                ]
-              ]
-            ]
-          ]
-        ]
-      ]
-    ]
-  ];
-  var winner = function (board) {
-    var lines = Curry._2(Morelist.List[/* map */11], (function (param) {
-            return turn_at_points(board, param);
-          }), winning_combinations);
-    var winning_lines = Curry._2(Morelist.List[/* filter */28], (function (line) {
-            return +(line !== /* Empty */0);
-          }), lines);
-    if (Curry._1(Morelist.List[/* length */0], winning_lines) > 0) {
-      return Curry._1(Morelist.List[/* hd */1], winning_lines);
-    } else {
-      return /* Empty */0;
-    }
-  };
-  return /* module */[
-          /* turn_at_points */turn_at_points,
-          /* winning_combinations */winning_combinations,
-          /* winner */winner
-        ];
-}
-
-function Rules(Point) {
-  var is_valid_move = function (board, point) {
-    return +(Curry._2(Point[/* value_at_point */0], board, point) === /* Empty */0);
-  };
-  var valid_moves = function (board) {
-    return Curry._2(Morelist.List[/* filter */28], (function (param) {
-                  return is_valid_move(board, param);
-                }), Morelist.List[/* range */46](0, 8));
-  };
-  return /* module */[
-          /* is_valid_move */is_valid_move,
-          /* valid_moves */valid_moves
-        ];
-}
+var PersistentGame = /* module */[/* value_at_point */value_at_point];
 
 function turn_at_board_point(game, board, point) {
   var board$prime = Curry._2(Morelist.List[/* nth */3], game, board);
@@ -7473,7 +7358,7 @@ function change_turn(param) {
 
 function make_move(game, current_board, turn, board, point) {
   var update_point = function (idx, point$prime) {
-    if (idx === point && !point$prime) {
+    if (idx === point) {
       return turn;
     } else {
       return point$prime;
@@ -7482,137 +7367,20 @@ function make_move(game, current_board, turn, board, point) {
   var update_board = function (idx, board$prime) {
     if (idx === board) {
       var new_board = Curry._2(Morelist.List[/* mapi */12], update_point, board$prime[/* board */0]);
-      var winner = function (board) {
-        var lines = Curry._2(Morelist.List[/* map */11], (function (param) {
-                var board$1 = board;
-                var points = param;
-                var turn_at_point = function (point) {
-                  return Curry._2(Morelist.List[/* nth */3], board$1, point);
-                };
-                var turns = Curry._2(Morelist.List[/* map */11], turn_at_point, points);
-                var head = Curry._1(Morelist.List[/* hd */1], turns);
-                if (head === /* Empty */0 || !Curry._2(Morelist.List[/* for_all */21], (function (item) {
-                          return +(item === head);
-                        }), turns)) {
-                  return /* Empty */0;
-                } else {
-                  return head;
-                }
-              }), /* :: */[
-              /* :: */[
-                0,
-                /* :: */[
-                  1,
-                  /* :: */[
-                    2,
-                    /* [] */0
-                  ]
-                ]
-              ],
-              /* :: */[
-                /* :: */[
-                  3,
-                  /* :: */[
-                    4,
-                    /* :: */[
-                      5,
-                      /* [] */0
-                    ]
-                  ]
-                ],
-                /* :: */[
-                  /* :: */[
-                    6,
-                    /* :: */[
-                      7,
-                      /* :: */[
-                        8,
-                        /* [] */0
-                      ]
-                    ]
-                  ],
-                  /* :: */[
-                    /* :: */[
-                      0,
-                      /* :: */[
-                        3,
-                        /* :: */[
-                          6,
-                          /* [] */0
-                        ]
-                      ]
-                    ],
-                    /* :: */[
-                      /* :: */[
-                        1,
-                        /* :: */[
-                          4,
-                          /* :: */[
-                            7,
-                            /* [] */0
-                          ]
-                        ]
-                      ],
-                      /* :: */[
-                        /* :: */[
-                          2,
-                          /* :: */[
-                            5,
-                            /* :: */[
-                              8,
-                              /* [] */0
-                            ]
-                          ]
-                        ],
-                        /* :: */[
-                          /* :: */[
-                            0,
-                            /* :: */[
-                              4,
-                              /* :: */[
-                                8,
-                                /* [] */0
-                              ]
-                            ]
-                          ],
-                          /* :: */[
-                            /* :: */[
-                              2,
-                              /* :: */[
-                                4,
-                                /* :: */[
-                                  6,
-                                  /* [] */0
-                                ]
-                              ]
-                            ],
-                            /* [] */0
-                          ]
-                        ]
-                      ]
-                    ]
-                  ]
-                ]
-              ]
-            ]);
-        var winning_lines = Curry._2(Morelist.List[/* filter */28], (function (line) {
-                return +(line !== /* Empty */0);
-              }), lines);
-        if (Curry._1(Morelist.List[/* length */0], winning_lines) > 0) {
-          return Curry._1(Morelist.List[/* hd */1], winning_lines);
-        } else {
-          return /* Empty */0;
-        }
-      };
+      var Check = Winner.CheckWinner(Winner.BoardPoint);
       return /* record */[
               /* board */new_board,
-              /* winner */board$prime[/* winner */1] ? board$prime[/* winner */1] : winner(new_board)
+              /* winner */board$prime[/* winner */1] ? board$prime[/* winner */1] : Curry._1(Check[/* winner */2], new_board)
             ];
     } else {
       return board$prime;
     }
   };
-  var valid_move = +(turn_at_board_point(game, board, point) === /* Empty */0);
+  Winner.CheckWinner(Winner.GamePoint);
+  var is_valid_move = function (game, board, point) {
+    return +(value_at_point(game, board, point) === /* Empty */0);
+  };
+  var valid_move = is_valid_move(game, board, point);
   if (current_board === board && valid_move) {
     var game$prime = Curry._2(Morelist.List[/* mapi */12], update_board, game);
     return /* tuple */[
@@ -7627,10 +7395,8 @@ function make_move(game, current_board, turn, board, point) {
   }
 }
 
-exports.Board               = Board;
-exports.Game                = Game;
-exports.CheckWinner         = CheckWinner;
 exports.Rules               = Rules;
+exports.PersistentGame      = PersistentGame;
 exports.turn_at_board_point = turn_at_board_point;
 exports.full_board          = full_board;
 exports.change_turn         = change_turn;
@@ -7871,6 +7637,7 @@ var View     = __webpack_require__(43);
 var Agent    = __webpack_require__(26);
 var Board    = __webpack_require__(20);
 var Curry    = __webpack_require__(1);
+var Winner   = __webpack_require__(45);
 var Tea_app  = __webpack_require__(39);
 var Tea_cmd  = __webpack_require__(12);
 var Tea_sub  = __webpack_require__(21);
@@ -7912,60 +7679,32 @@ function update(model, param) {
     var match = Board.make_move(model[/* game */3], model[/* current_board */0], model[/* turn */2], param[0], point);
     if (match[0]) {
       var game = match[1];
-      var Check = Board.CheckWinner(Board.Game);
-      var Rules = Board.Rules(Board.Board);
-      var match$1 = Curry._1(Check[/* winner */2], game);
-      switch (match$1) {
-        case 0 : 
-            if (Morelist.List[/* empty */45](Curry._1(Rules[/* valid_moves */1], Curry._2(Morelist.List[/* nth */3], model[/* game */3], point)[/* board */0]))) {
-              return /* tuple */[
-                      /* record */[
-                        /* current_board */model[/* current_board */0],
-                        /* pooter_thinking */model[/* pooter_thinking */1],
-                        /* turn */model[/* turn */2],
-                        /* game */model[/* game */3],
-                        /* game_winner : Draw */3
-                      ],
-                      Tea_cmd.none
-                    ];
-            } else {
-              var turn = Board.change_turn(model[/* turn */2]);
-              var pooters_turn = +(turn === /* Cross */2);
-              return /* tuple */[
-                      /* record */[
-                        /* current_board */point,
-                        /* pooter_thinking */pooters_turn,
-                        /* turn */turn,
-                        /* game */game,
-                        /* game_winner */model[/* game_winner */4]
-                      ],
-                      pooters_turn ? Agent.move(game, point, turn) : Tea_cmd.none
-                    ];
-            }
-            break;
-        case 1 : 
-            return /* tuple */[
-                    /* record */[
-                      /* current_board */model[/* current_board */0],
-                      /* pooter_thinking : false */0,
-                      /* turn */model[/* turn */2],
-                      /* game */game,
-                      /* game_winner : Noughts */1
-                    ],
-                    Tea_cmd.none
-                  ];
-        case 2 : 
-            return /* tuple */[
-                    /* record */[
-                      /* current_board */model[/* current_board */0],
-                      /* pooter_thinking : false */0,
-                      /* turn */model[/* turn */2],
-                      /* game */game,
-                      /* game_winner : Crosses */2
-                    ],
-                    Tea_cmd.none
-                  ];
-        
+      var Rules = Board.Rules(Board.PersistentGame)(Winner.GamePoint);
+      var winner = Curry._2(Rules[/* result */3], game, point);
+      if (winner !== 0) {
+        return /* tuple */[
+                /* record */[
+                  /* current_board */model[/* current_board */0],
+                  /* pooter_thinking : false */0,
+                  /* turn */model[/* turn */2],
+                  /* game */game,
+                  /* game_winner */winner
+                ],
+                Tea_cmd.none
+              ];
+      } else {
+        var turn = Board.change_turn(model[/* turn */2]);
+        var pooters_turn = +(turn === /* Cross */2);
+        return /* tuple */[
+                /* record */[
+                  /* current_board */point,
+                  /* pooter_thinking */pooters_turn,
+                  /* turn */turn,
+                  /* game */game,
+                  /* game_winner */model[/* game_winner */4]
+                ],
+                pooters_turn ? Agent.move(game, point, turn) : Tea_cmd.none
+              ];
       }
     } else {
       return /* tuple */[
@@ -11528,6 +11267,7 @@ var $$Array    = __webpack_require__(32);
 var Board      = __webpack_require__(20);
 var Curry      = __webpack_require__(1);
 var Random     = __webpack_require__(31);
+var Winner     = __webpack_require__(45);
 var Caml_obj   = __webpack_require__(3);
 var Morelist   = __webpack_require__(44);
 var Caml_array = __webpack_require__(7);
@@ -11569,13 +11309,20 @@ var $$Array$1 = /* module */[
 
 var value_at_point = Caml_array.caml_array_get;
 
-var MutableBoard = /* module */[/* value_at_point */value_at_point];
+var MutableBoardPoint = /* module */[/* value_at_point */value_at_point];
 
 function value_at_point$1(board, pos) {
   return Caml_array.caml_array_get(board, pos)[/* mwinner */1];
 }
 
-var MutableGame = /* module */[/* value_at_point */value_at_point$1];
+var MutableGamePoint = /* module */[/* value_at_point */value_at_point$1];
+
+function value_at_point$2(game, board, pos) {
+  var board$prime = Caml_array.caml_array_get(game, board)[/* mboard */0];
+  return Caml_array.caml_array_get(board$prime, pos);
+}
+
+var MutableGame = /* module */[/* value_at_point */value_at_point$2];
 
 function game_to_mutable_game(game) {
   var board_to_mutable_board = function (board) {
@@ -11590,21 +11337,14 @@ function game_to_mutable_game(game) {
 function random_move(game, board) {
   while(true) {
     var point = Random.$$int(9);
-    var board$prime = Caml_array.caml_array_get(game, board)[/* mboard */0];
-    var Rules = Board.Rules(MutableBoard);
-    if (Curry._2(Rules[/* is_valid_move */0], board$prime, point)) {
+    var Rules = Board.Rules(MutableGame)(MutableGamePoint);
+    if (Curry._3(Rules[/* is_valid_move */1], game, board, point)) {
       return point;
     } else {
       continue ;
       
     }
   };
-}
-
-function full_board(board) {
-  return for_all((function (item) {
-                return +(item !== /* Empty */0);
-              }), board);
 }
 
 function play_game(game, _current_board, _move, _turn) {
@@ -11616,32 +11356,22 @@ function play_game(game, _current_board, _move, _turn) {
     var board$prime = board[/* mboard */0];
     Caml_array.caml_array_set(board$prime, move, turn);
     if (!board[/* mwinner */1]) {
-      var Check = Board.CheckWinner(MutableBoard);
+      var Check = Winner.CheckWinner(MutableBoardPoint);
       var winner = Curry._1(Check[/* winner */2], board$prime);
       Caml_array.caml_array_set(game, current_board, /* record */[
             /* mboard */board$prime,
             /* mwinner */winner
           ]);
     }
-    var Check$1 = Board.CheckWinner(MutableGame);
-    var winner$1 = Curry._1(Check$1[/* winner */2], game);
-    switch (winner$1) {
-      case 0 : 
-          var Rules = Board.Rules(MutableBoard);
-          if (Morelist.List[/* empty */45](Curry._1(Rules[/* valid_moves */1], Caml_array.caml_array_get(game, move)[/* mboard */0]))) {
-            return /* Draw */3;
-          } else {
-            _turn = Board.change_turn(turn);
-            _move = random_move(game, move);
-            _current_board = move;
-            continue ;
-            
-          }
-          break;
-      case 1 : 
-          return /* Noughts */1;
-      case 2 : 
-          return /* Crosses */2;
+    var Rules = Board.Rules(MutableGame)(MutableGamePoint);
+    var winner$1 = Curry._2(Rules[/* result */3], game, move);
+    if (winner$1 !== 0) {
+      return winner$1;
+    } else {
+      _turn = Board.change_turn(turn);
+      _move = random_move(game, move);
+      _current_board = move;
+      continue ;
       
     }
   };
@@ -11675,7 +11405,7 @@ function string_of_wins(wins) {
 }
 
 function move(game, current_board, whos_turn) {
-  var Rules = Board.Rules(Board.Board);
+  var Rules = Board.Rules(Board.PersistentGame)(Winner.GamePoint);
   var wins = Curry._2(Morelist.List[/* map */11], (function (param) {
           var _count = 0;
           var _wins = 0;
@@ -11683,7 +11413,7 @@ function move(game, current_board, whos_turn) {
           while(true) {
             var wins = _wins;
             var count = _count;
-            if (count === 1000) {
+            if (count === 400) {
               return /* tuple */[
                       move,
                       wins
@@ -11697,22 +11427,21 @@ function move(game, current_board, whos_turn) {
               
             }
           };
-        }), Curry._1(Rules[/* valid_moves */1], Curry._2(Morelist.List[/* nth */3], game, current_board)[/* board */0]));
+        }), Curry._2(Rules[/* valid_moves */2], game, current_board));
   var compare_moves = function (param, param$1) {
     return Caml_obj.caml_compare(param$1[1], param[1]);
   };
-  console.log(string_of_wins(wins));
   return Curry._1(Morelist.List[/* hd */1], Curry._2(Morelist.List[/* sort */39], compare_moves, wins))[0];
 }
 
-var rollouts = 1000;
+var rollouts = 400;
 
 exports.$$Array              = $$Array$1;
-exports.MutableBoard         = MutableBoard;
+exports.MutableBoardPoint    = MutableBoardPoint;
+exports.MutableGamePoint     = MutableGamePoint;
 exports.MutableGame          = MutableGame;
 exports.game_to_mutable_game = game_to_mutable_game;
 exports.random_move          = random_move;
-exports.full_board           = full_board;
 exports.play_game            = play_game;
 exports.did_i_win            = did_i_win;
 exports.string_of_wins       = string_of_wins;
@@ -11929,7 +11658,7 @@ function empty(param) {
 }
 
 function range(from, to$prime) {
-  if (from === to$prime) {
+  if (from > to$prime) {
     return /* [] */0;
   } else {
     return /* :: */[
@@ -11990,6 +11719,165 @@ var List$1 = /* module */[
 ];
 
 exports.List = List$1;
+/* No side effect */
+
+
+/***/ }),
+/* 45 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+// Generated by BUCKLESCRIPT VERSION 2.1.0, PLEASE EDIT WITH CARE
+
+
+var List  = __webpack_require__(2);
+var Curry = __webpack_require__(1);
+
+var value_at_point = List.nth;
+
+var BoardPoint = /* module */[/* value_at_point */value_at_point];
+
+function value_at_point$1(board, pos) {
+  return List.nth(board, pos)[/* winner */1];
+}
+
+var GamePoint = /* module */[/* value_at_point */value_at_point$1];
+
+function CheckWinner(Point) {
+  var turn_at_points = function (board, points) {
+    var turn_at_point = function (point) {
+      return Curry._2(Point[/* value_at_point */0], board, point);
+    };
+    var turns = List.map(turn_at_point, points);
+    var head = List.hd(turns);
+    if (head === /* Empty */0 || !List.for_all((function (item) {
+              return +(item === head);
+            }), turns)) {
+      return /* Empty */0;
+    } else {
+      return head;
+    }
+  };
+  var winning_combinations = /* :: */[
+    /* :: */[
+      0,
+      /* :: */[
+        1,
+        /* :: */[
+          2,
+          /* [] */0
+        ]
+      ]
+    ],
+    /* :: */[
+      /* :: */[
+        3,
+        /* :: */[
+          4,
+          /* :: */[
+            5,
+            /* [] */0
+          ]
+        ]
+      ],
+      /* :: */[
+        /* :: */[
+          6,
+          /* :: */[
+            7,
+            /* :: */[
+              8,
+              /* [] */0
+            ]
+          ]
+        ],
+        /* :: */[
+          /* :: */[
+            0,
+            /* :: */[
+              3,
+              /* :: */[
+                6,
+                /* [] */0
+              ]
+            ]
+          ],
+          /* :: */[
+            /* :: */[
+              1,
+              /* :: */[
+                4,
+                /* :: */[
+                  7,
+                  /* [] */0
+                ]
+              ]
+            ],
+            /* :: */[
+              /* :: */[
+                2,
+                /* :: */[
+                  5,
+                  /* :: */[
+                    8,
+                    /* [] */0
+                  ]
+                ]
+              ],
+              /* :: */[
+                /* :: */[
+                  0,
+                  /* :: */[
+                    4,
+                    /* :: */[
+                      8,
+                      /* [] */0
+                    ]
+                  ]
+                ],
+                /* :: */[
+                  /* :: */[
+                    2,
+                    /* :: */[
+                      4,
+                      /* :: */[
+                        6,
+                        /* [] */0
+                      ]
+                    ]
+                  ],
+                  /* [] */0
+                ]
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  ];
+  var winner = function (board) {
+    var lines = List.map((function (param) {
+            return turn_at_points(board, param);
+          }), winning_combinations);
+    var winning_lines = List.filter((function (line) {
+              return +(line !== /* Empty */0);
+            }))(lines);
+    if (List.length(winning_lines) > 0) {
+      return List.hd(winning_lines);
+    } else {
+      return /* Empty */0;
+    }
+  };
+  return /* module */[
+          /* turn_at_points */turn_at_points,
+          /* winning_combinations */winning_combinations,
+          /* winner */winner
+        ];
+}
+
+exports.BoardPoint  = BoardPoint;
+exports.GamePoint   = GamePoint;
+exports.CheckWinner = CheckWinner;
 /* No side effect */
 
 

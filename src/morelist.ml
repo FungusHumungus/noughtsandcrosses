@@ -12,7 +12,7 @@ module List = struct
     
         
   let rec range from to' = 
-    if from == to' 
+    if from > to' 
     then []
     else from :: range (from + 1) to'
     

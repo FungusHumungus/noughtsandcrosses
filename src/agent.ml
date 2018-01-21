@@ -1,4 +1,4 @@
-open Types
+open Model
    
 external set_timeout : (unit -> unit) -> int -> unit = "setTimeout" [@@bs.val]
 
