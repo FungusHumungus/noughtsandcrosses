@@ -7,7 +7,7 @@ let move game current_board whos_turn =
                  let enqRes result = !callbacks.enqueue ( Click (current_board, result) ) in
                  
                  set_timeout (fun () ->
-                     RandomAgent.move game current_board whos_turn
+                     MctsAgent.move game current_board whos_turn
                             |> enqRes
-                            |> ignore) 1000
+                            |> ignore) 100
                )

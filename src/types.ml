@@ -2,11 +2,13 @@ open Board
 
 type msg = 
   Click of int * int
-   
+         
+         
 type model = {
     current_board: int
-  ; turn: Board.point
+  ; pooter_thinking: bool
+  ; turn: point 
   ; game: board list
-  ; game_winner: Board.winner
+  ; game_winner: winner
   }
  
